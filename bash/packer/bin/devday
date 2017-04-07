@@ -1,0 +1,35 @@
+#!/bin/bash
+###############################################################################
+#  (@)devday.sh
+#
+#  Copyright 2017 by Oracle Corporation,
+#  500 Oracle Parkway, Redwood Shores, California, 94065, U.S.A.
+#  All rights reserved.
+#
+#  This software is the confidential and proprietary information
+#  of Oracle Corporation.
+#
+# NAME	devday
+#
+# DESC 	This script starts the packer build for dev day VM.  It validates the
+#       files required and builds based on what is in the install directory.
+#
+# AUTHOR bamcgill
+#
+# MODIFIED
+#   bamcgill    24/03/2017  Created
+###############################################################################
+# Common variables.
+VERBOSE=true;
+CWD="$(dirname "$0")"
+
+#importing common functions
+echo "loading banners" && . $CWD/banners
+echo "loading functions" &&. $CWD/functions
+echo "loading linux builder" &&. $CWD/build_linux
+echo "loading database builder" &&. $CWD/build_database
+main_banner "Oracle Developer Day VirtualBox VM builder"
+#Check that the required programs exist on the path.  Abort if not there.
+checkAvailableApps packer VBoxManage zip
+build_linux
+build_database

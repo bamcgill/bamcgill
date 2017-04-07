@@ -1,0 +1,47 @@
+#!/bin/bash
+###############################################################################
+#  (@)build_linux.sh
+#
+#  Copyright 2017 by Oracle Corporation,
+#  500 Oracle Parkway, Redwood Shores, California, 94065, U.S.A.
+#  All rights reserved.
+#
+#  This software is the confidential and proprietary information
+#  of Oracle Corporation.
+#
+# NAME	build_database
+#
+# DESC 	This script starts the packer build for database on the dev day VM
+#       
+#
+# AUTHOR bamcgill
+#
+# MODIFIED
+#   bamcgill    24/03/2017  Created
+###############################################################################
+
+CWD="$(dirname "$0")"
+. "$CWD/files"
+. "$CWD/functions"
+. "$CWD/banners"
+
+function build_database {
+echo
+banner_line
+title_line " Building 12.2 database on VM "
+	fullpathdatabase=$CWD/../install/$DB_ONE_ZIP;
+   	if [ -f $fullpathdatabase ];
+   	then
+      title_left " $fullpathiso found.";
+      title_left " Starting packer build for database";
+      title_left " working working working";
+      title_left " packer_build completed";
+   	else
+   	   title_left " $fullpathdatabase not found."
+       title_left aborting
+       banner_line;
+       exit 1;
+   	fi
+   	title_left " Virtual Machine Build Completed. "
+    banner_line;
+}

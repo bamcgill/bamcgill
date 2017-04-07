@@ -1,0 +1,84 @@
+#!/bin/bash
+###############################################################################
+#  (@)banners.sh
+#
+#  Copyright 2017 by Oracle Corporation,
+#  500 Oracle Parkway, Redwood Shores, California, 94065, U.S.A.
+#  All rights reserved.
+#
+#  This software is the confidential and proprietary information
+#  of Oracle Corporation.
+#
+# NAME	banners
+#
+# DESC 	This script has most of the verbose banners so we can simplify the main
+#       script so it is readable and its function is clear.
+#
+# AUTHOR bamcgill
+#
+# MODIFIED
+#   bamcgill    24/03/2017  Created
+###############################################################################
+
+
+function main_banner {
+	banner_line;
+	title_line "$1";
+	banner_line;
+}
+
+
+#
+# helper function to print text lines. This can be changed to clean up the string
+# and center it.
+#
+function title_line {
+	pad=$(printf '%0.1s' " "{1..100})
+	padlength=78
+	string2=$1
+	halfpad=$(((padlength - ${#string2}) / 2))
+    printf '%s' "|"
+    printf '%*.*s' 0 $halfpad "$pad"
+    printf '%s' "$string2"
+    printf '%*.*s' 0 $halfpad "$pad"
+    printf '%s|\n' 
+}
+#
+# helper function to print text lines. This can be changed to clean up the string
+# and center it.
+#
+function title_left {
+	pad=$(printf '%0.1s' " "{1..100})
+	padlength=78
+	string2=$1
+	fullpad=$(((padlength - ${#string2}) ))
+    printf '%s' "|"
+    printf '%s' "$string2"
+    printf '%*.*s' 0 $fullpad "$pad"
+    printf '%s|\n' 
+}
+
+function title_split_pad {
+	pad=$(printf '%0.1s' "."{1..78})
+	padlength=78
+	string1=$1
+	string2=$2
+    printf '%s' "|"
+    printf '%s' "$1"
+    printf '%*.*s' 0 $((padlength - ${#string1} - ${#string2} )) "$pad"
+    printf '%s' "$string2"
+    printf '%s\n' "|"
+
+}
+
+
+
+#
+# helper function to print banner lines
+#
+function banner_line {
+   echo "+------------------------------------------------------------------------------+";
+}
+
+
+

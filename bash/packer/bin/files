@@ -1,0 +1,32 @@
+#!/bin/bash
+###############################################################################
+#  (@)files.sh
+#
+#  Copyright 2017 by Oracle Corporation,
+#  500 Oracle Parkway, Redwood Shores, California, 94065, U.S.A.
+#  All rights reserved.
+#
+#  This software is the confidential and proprietary information
+#  of Oracle Corporation.
+#
+# NAME	files
+#
+# DESC 	This script lists the files which will be used on the build.
+#       Each file represents a specific packer build.
+#
+# AUTHOR bamcgill
+#
+# MODIFIED
+#   bamcgill    24/03/2017  Created
+###############################################################################
+
+#Change these to the names of the files you have.
+# Name of the Linux iso for installing.
+
+LINUX_ISO=V834394-01.iso   
+
+# Name of the database install file.
+DB_ONE_ZIP=database1.zip
+
+# Name of the Application Express zip file.
+APEX_ZIP=apex.zip
