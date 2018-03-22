@@ -8,7 +8,7 @@ REST Enabled SQL / REST Enabled SQL Export
 The following preference can be set in the ORDS default.xml config file.
 default.xml
 
-<entry key="restEnabledSql.active">true</entry>
+ \<entry key\=\"restEnabledSql.active\"\>true\<\/entry\>
 
 Enables the following features
 
