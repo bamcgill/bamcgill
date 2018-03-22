@@ -12,15 +12,15 @@ default.xml
 
 Enables the following features
 
- 1.REST Enabled SQL
- 1.REST Enabled SQL Export
+ 1. REST Enabled SQL
+ 2. REST Enabled SQL Export
 
 An example of a configured default.xml can be found in the ORDS project under the "examples" project : /examples/confs/standalone_rest_enabled_sql
 
-#REST Enabled Server Side Scripts
+# REST Enabled Server Side Scripts
 
 Turned on by default, no flag required.
-#Note
+# Note
 
 In the past the a web client for REST Enabled SQL and REST Enabled SQL Export was available by using a flag in the default.xml. These web clients have been moved and can be found in the rest_enabled_sql example config in the ORDS project.
  
