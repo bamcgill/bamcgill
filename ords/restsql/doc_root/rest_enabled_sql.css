@@ -1,0 +1,123 @@
+body {
+	vertical-align: top;
+}
+
+table {
+	border-collapse: separate;
+	border: solid black 0px;
+	border-radius: 6px;
+	-moz-border-radius: 6px;
+}
+
+th {
+	border-left: solid black 0px;
+	border-top: solid black 0px;
+	padding: 5px;
+	text-align: left;
+	width: 600px;
+	background-color: #52677c;
+	color: white;
+}
+
+tr {
+	vertical-align: top;
+}
+
+td[id=body] {
+	border-left: solid black 0px;
+	border-top: solid black 0px;
+	padding: 5px;
+	background-color: #b5cfdd;
+	vertical-align ="top";
+	width: 600px;
+}
+
+td[id=lhs] {
+	width: 600px;
+}
+
+td[id=rhs] {
+	width: 600px;
+}
+
+td[id=wide] {
+	border-left: solid black 0px;
+	border-top: solid black 0px;
+	padding: 5px;
+	background-color: #b5cfdd;
+	width: 1220px;
+}
+
+select {
+	width: 304px;
+}
+
+input {
+	width: 300px;
+}
+
+input[type=submit] {
+	width: 605px;
+}
+
+textarea {
+	width: 550px;
+	height: 450px;
+	max-width: 600px;
+	min-width: 600px;
+	max-height: 450px;
+	min-heigth: 450px;
+}
+
+#label {
+	width: 200px;
+}
+
+#curl {
+	white-space: pre-wrap; /* Since CSS 2.1 */
+	white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+	white-space: -pre-wrap; /* Opera 4-6 */
+	white-space: -o-pre-wrap; /* Opera 7 */
+	word-wrap: break-word; /* Internet Explorer 5.5+ */
+}
+
+#consolex {
+	max-width: 1228px;
+	min-width: 1228px;
+	resize: both;
+	white-space: nowrap;
+}
+
+pre[id=json_result_pre] {
+	background-color: ghostwhite;
+	border: 1px solid silver;
+	padding: 0px 0px;
+	margin: 0px;
+	height: 650px;
+	max-width: 600px;
+	min-width: 600px;
+	overflow: auto;
+	word-break: normal !important;
+	word-wrap: normal !important;
+	white-space: pre !important;
+}
+
+.json-key {
+	color: #9e0303;
+}
+
+.json-value {
+	color: blue;
+}
+
+.json-string {
+	color: olive;
+}
+
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}

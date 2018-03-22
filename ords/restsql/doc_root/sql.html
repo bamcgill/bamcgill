@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html>
+<script type="text/javascript" src="examples.js"></script> 
+<script type="text/javascript" src="rest_enabled_sql.js"></script> 
+<script>
+<!-- handy changing the defaults for different envs like the continuous server -->
+var default_schema = "demo";
+var default_username = "DEMO";
+var default_password = "demo";
+var default_server="http://localhost:8087/ords/"; <!-- default used if current page is a file -->
+</script>
+<head>
+<link rel="stylesheet" type="text/css" href="rest_enabled_sql.css">
+</head>
+<body>
+	<table id=main-table">
+		<tr>
+			<th id="lhs">
+				Request
+			</th>
+			<th id="rhs">
+				Response
+			</th>
+		</tr>
+		<tr>
+			<td id="body">
+				<form id="sqlForm" method="post" enctype="text/plain">
+					<table>
+					     <tr>
+							<td><div id="label">Server</div></td>
+							<td><input type="text" id="server" onchange="setServer()" onkeydown="setServer()" oninput="setServer()" value=""/></td>
+						</tr>
+						<tr>
+							<td><div id="label">Schema</div></td>
+							<td><input type="text" id="schema" onchange="setSchema()" onkeydown="setSchema()" oninput="setSchema()" value=""/></td>
+						</tr>
+						<tr>
+							<td><div id="label">Username</div></td>
+							<td><input type="text" id="username" onchange="setUsername()" onkeydown="setUsername()" oninput="setUsername()" value=""/></td>
+						</tr>
+						<tr>
+							<td><div id="label">Password</div></td>
+							<td><input type="text" id="password" onchange="setPassword()" onkeydown="setPassword()" oninput="setPassword()" value=""/></td>
+						</tr>
+						<tr>
+							<td>Content-Type</td>
+							<td><select class="form-control" id="contentType" onchange="setContentType()">
+							</select></td>
+						</tr>
+						<tr>
+							<td><div id="label">Examples</div></td>
+							<td><select class="form-control" id="examples" onchange="setExample()">
+							</select></td>
+						</tr>
+					</table>
+					<br />
+					<textarea id='sql' wrap="off"  onchange="setSQL()" onkeydown="setSQL()" oninput="setSQL()"></textarea>
+					<br /> <input type="submit" value="POST">
+				</form>
+			</td>
+			<td id="body">
+				<pre id="json_result_pre">
+					<div id="json_result_div">
+						<center>REST Enabled SQL<br/><img src="images/rest_enabled_sql-128.png"/>
+						</center>
+					</div>
+				</pre>
+			</td>
+		</tr>
+	</table>
+	<table>
+	 	<tr> 
+			<td id="wide" colspan="2">
+				<pre id='curl'></pre>
+			</td>
+		</tr>
+	</table>
+	<!--  use an iframe as sometimes this will display an error html page returned from ORDS -->
+	<iframe id="consolex" src=""></iframe>
+	<div data-role="footer">
+		<h1></h1>
+	</div>
+</body>
+<script>
+//setup global vars
+var server=default_server;
+server = window.location.protocol+"//"+window.location.hostname+":"+window.location.port+"/ords/";
+if(server.startsWith("file")){
+	server=default_server;	
+}
+var schema= default_schema;
+var username=default_username;
+var password=default_password;
+var extension = ".sql";
+var contentType;
+var sqlText;
+var url;
+var example;
+//constants
+var INVALID_JSON = "<br>The JSON Response cannot be parsed</br>";
+</script>
+<script>
+//override the form action
+window.addEventListener("load", function () {
+  // We need to access the form element
+  var form = document.getElementById("sqlForm");
+  // to takeover its submit event.
+  form.addEventListener("submit", function (event) {
+     event.preventDefault();
+     //post request (sendDate in rest_enabled_sql.jss)
+     postDataBody(url, contentType, username, password, sqlText, processResponse );
+  });
+
+  //callback functionality
+  function processResponse(data){
+	  updateResponsePanel(data);
+	  updateConsole(data);
+  }
+});
+	  	 	
+function updateResponsePanel(data){
+	var panel = document.getElementById("json_result_div");
+	var status = data.status;
+	
+	if(data.hasOwnProperty('eventValue')){
+		if(status == 200) {
+			handleEventValue(data.eventValue, panel);
+		} else if(status==401){
+			handleInfoValue("Username or Password is incorrect", panel);
+		} else if (status==500){
+		    handleInfoValue("Internal Error <br/>Is the content-type set correctly? Currently set as "+contentType +"<br/>Is the json request valid?", panel); 
+		}
+	}
+	if(data.hasOwnProperty('infoValue')){
+		handleInfoValue(data.infoValue, panel);
+	}
+}
+
+function handleEventValue(event, panel){
+	var responseText = event.target.responseText;
+    if (responseText.startsWith("{")) {
+    	//verify its valid json
+    	try {
+    		var jsonObj = JSON.parse(responseText);
+    		panel.innerHTML = library.json.prettyPrint(jsonObj);
+    	} catch(error) {
+    		panel.innerHTML = INVALID_JSON + "<br/>" + responseText;
+    	}
+    }
+}
+    
+function handleInfoValue(info, panel){
+	panel.innerHTML= "<p>"+info+"</p>";
+}
+
+function updateConsole(data){
+	if(data.hasOwnProperty('status')){
+		var status = data.status;
+		if(status == 200){//if everything ok
+			var responseText = data.eventValue.target.responseText;	
+			var jsonObj = JSON.parse(responseText);
+			//try and report the "repsonse" field
+			var statementText = jsonObj.items[0].statementText;
+			var responseArray = null;
+			var itemsArray = null;
+			var metadataArray =null;
+			var resultText = null;
+			var resultSetText = null;
+			if(jsonObj.items[0].hasOwnProperty('response')) {
+				responseArray = jsonObj.items[0].response;
+			}
+			if(jsonObj.items[0].hasOwnProperty('resultSet')) {
+				itemsArray = jsonObj.items[0].resultSet.items;
+			}
+			if(jsonObj.items[0].hasOwnProperty('resultSet')) {
+			 	metadataArray = jsonObj.items[0].resultSet.metadata;
+			}
+			if(responseArray !== null) {
+				resultText = processResponseArray(responseArray).trim();
+			}
+			if(itemsArray !==null && metadataArray !== null) {
+				resultSetText = processResultSet(itemsArray,metadataArray);
+			}
+			refreshConsole(statementText,resultText,resultSetText);
+		} else { //if there was a problem
+			setIFrame(data.eventValue.target.responseText);
+		}
+	}
+}
+
+function consolePageWrap(text){
+	var htmlPage =  "<html><body style=\"background-color:black;color:white; white-space: nowrap;\"><pre>" + text + "</pre></body></html>";
+	return htmlPage
+}
+
+function setIFrame(content){
+	  var iframeDoc = consolex.contentWindow.document;
+		 iframeDoc.open();
+		 iframeDoc.write(content);
+		 iframeDoc.close();
+}	
+
+function processResponseArray(responseArray){
+	var str = responseArray.join(" ").replace(/\r\n/g," ");
+	return str;
+}
+
+function processResultSet(items,metadata){
+	var resultSetTable ="<table>"+columnHeader(metadata) + rows(items)+"</table>";
+	return resultSetTable;
+}
+
+function columnHeader(metadata){
+	var columnHeaderRow = "<tr>";
+	for (index = 0; index < metadata.length; ++index) {
+		columnHeaderRow += "<td>"+metadata[index].columnName+"</td>";
+	}
+	columnHeaderRow += "</tr>";
+	return columnHeaderRow;
+}
+
+function rows(items){
+	var rows = "";
+	for (index = 0; index < items.length; ++index) {
+		rows += row(items[index]);
+	}
+	return rows;
+}
+
+function row(item){
+	var row = "<tr>";
+	for (var property in item) {
+	    if (item.hasOwnProperty(property)) {
+	        row += "<td>"+item[property]+"</td>";
+	    }
+	}
+	row += "</tr>";
+	return row;
+}
+
+</script>
+<script>
+//setup form fields
+document.getElementById("server").value =server;
+document.getElementById("schema").value=schema;
+document.getElementById("username").value=username;
+document.getElementById("password").value=password;
+
+//setup the content-type
+var contentTypeDropDown = document.getElementById("contentType");
+contentTypeDropDown.options.add( new Option(ct_sql,ct_sql,true,true));
+contentTypeDropDown.options.add( new Option(ct_json,ct_json,true,true));
+contentTypeDropDown.options[0].selected = true;//choose ct_sql as the default
+	
+//setup the examples dropdown box
+var selectList = document.getElementById("examples");
+for(var i = 0; i< examples.length; i++){
+	selectList.options.add( new Option(examples[i].name,examples[i].name,true,true));
+}
+selectList.options[0].selected = true;//choose the first item in the drop down as the default
+example = selectList.options[0].value;
+
+//this will refresh the sqlText and contentType
+setExample();
+
+//setup curl & consolex
+refresh();
+
+//define actions
+//define action when example choosen
+function setExample() {
+	var exampleElement = document.getElementById("examples");
+	example = exampleElement.options[exampleElement.selectedIndex].value;
+	for(var i = 0; i< examples.length; i++){
+		if(examples[i].name == example){
+			sqlText = examples[i].value;
+			contentType = examples[i].contentType;
+		}
+	}
+	document.getElementById("sql").value = sqlText;
+	
+	for(var i = 0;i < contentTypeDropDown.options.length;i++){
+	    if(contentTypeDropDown.options[i].value == contentType ){
+	    	contentTypeDropDown.options[i].selected = true;
+	    }
+	}
+	refresh();
+}
+
+//define action when server changed
+function setServer() {
+	server = document.getElementById("server").value;   
+	refresh();
+}
+
+//define action when schema changed
+function setSchema() {
+	schema = document.getElementById("schema").value;
+	refresh();
+}
+
+//define action when username changed
+function setUsername() {
+	username = document.getElementById("username").value;
+	refresh();
+}
+
+//define action when password changed
+function setPassword() {
+	password = document.getElementById("password").value;
+	refresh();
+}
+
+//define action when password changed
+function setSQL() {
+	sqlText= document.getElementById("sql").value;
+	refresh();
+}
+
+//define action when contentType changed
+function setContentType() {
+	 var contentTypeElement = document.getElementById("contentType");
+     contentType= contentTypeElement.options[contentTypeElement.selectedIndex].value;
+     if(contentType == ct_json){
+    	 extension = ".json";
+     } else {
+    	 extension =".sql";
+     }
+     refresh();
+}
+
+function refresh(){
+	refreshURL();
+	refreshCurl();
+	refreshConsole(sqlText,null,null);
+}
+
+function refreshURL(){
+	url = server+schema.toLowerCase()+"/_/sql";
+}
+
+function refreshCurl() {
+	//setup curl command
+    var curlCmd = "curl -i -X POST --user "+username+":"+password+" --data-binary \"@"+example+extension+"\" -H \"Content-Type: "+contentType+ "\" -k "+url;
+    document.getElementById("curl").innerHTML=curlCmd;
+}
+
+function makeOneLine(text){
+	return text.replace(/(\r\n|\n|\r)/gm," ");//put the entire statement on one line
+}
+function refreshConsole(stmt, result, resultSetText) {
+	//setup sqlcl command
+    var consoleText = "> sql "+username+"/"+password+"@"+url;
+    consoleText = consoleText +"\n" + "SQL>"+makeOneLine(stmt);
+    if(result !== null && result.trim() !== ""){
+    	consoleText = consoleText +"\n"+result;
+    }
+    if(resultSetText!==null && resultSetText.trim() !== ""){
+    	consoleText = consoleText+"\n"+resultSetText;
+    }
+    setIFrame(consolePageWrap(consoleText));
+}
+
+</script>
+<script>
+//perform syntax highlighting of json response
+if (!library)
+   var library = {};
+
+library.json = {
+   replacer: function(match, pIndent, pKey, pVal, pEnd) {
+      var key = '<span class=json-key>';
+      var val = '<span class=json-value>';
+      var str = '<span class=json-string>';
+      var r = pIndent || '';
+      if (pKey)
+         r = r + key + pKey + '</span>';
+      if (pVal)
+         r = r + (pVal[0] == '"' ? str : val) + pVal + '</span>';
+      return r + (pEnd || '');
+      },
+   prettyPrint: function(obj) {
+      var jsonLine = /^( *)("[\w]+": )?("[^"]*"|[\w.+-]*|\[\])?([,[{])?$$/mg;
+      return JSON.stringify(obj, null, 3)
+         .replace(/&/g, '&amp;').replace(/\\"/g, '&quot;')
+         .replace(/</g, '&lt;').replace(/>/g, '&gt;')
+         .replace(jsonLine, library.json.replacer);
+      }
+   };
+</script>
+</html>

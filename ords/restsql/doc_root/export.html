@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<script type="text/javascript" src="examples_export.js"></script> 
+<script type="text/javascript" src="rest_enabled_sql.js"></script> 
+
+<head>
+<link rel="stylesheet" type="text/css" href="rest_enabled_sql.css">
+</head>
+<body>
+	<table>
+		<tr>
+			<th id="lhs">
+				Request
+			</th>
+			<th id="rhs">
+				Response
+			</th>
+		</tr>
+		<tr>
+			<td id="body">
+				<form id="sqlForm" method="post" enctype="text/plain">
+					<table>
+					     <tr>
+							<td><div id="label">Server</div></td>
+							<td><input type="text" id="server" onchange="setServer()" onkeydown="setServer()" oninput="setServer()"/>
+							</td>
+						</tr>
+						<tr>
+							<td><div id="label">Schema</div></td>
+							<td><input type="text" id="schema" onchange="setSchema()" onkeydown="setSchema()" oninput="setSchema()" value="demo"/></td>
+						</tr>
+							<tr>
+							<td><div id="label">Username</div></td>
+							<td><input type="text" id="username" onchange="setUsername()" onkeydown="setUsername()" oninput="setUsername()" value="DEMO"/></td>
+						</tr>
+						<tr>
+							<td><div id="label">Password</div></td>
+							<td><input type="text" id="password" onchange="setPassword()" onkeydown="setPassword()" oninput="setPassword()" value="demo"/></td>
+						</tr>
+						<tr>
+							<td><div id="label">Examples</div></td>
+							<td><select class="form-control" id="examples" onchange="setExample()">
+							</select></td>
+						</tr>
+					</table>
+					<br />
+					<textarea id='sql' onchange="setSQL()" onkeydown="setSQL()" oninput="setSQL()"></textarea>
+					<br /> <input type="submit" value="POST">
+				</form>
+			</td>                 
+			<td id="body"><div id='json_result_div'><center>REST Enabled SQL Export<br/><img src="images/rest_enabled_sql-128.png"/> </center></div></td>
+		</tr>
+	</table>
+	<table>
+	 	<tr> 
+			<td id="wide" colspan="2">
+				<pre id='curl'></pre>
+			</td>
+		</tr>
+	</table>
+	<div data-role="footer">
+		<h1></h1>
+	</div>
+</body>
+<script>
+//global vars
+var server="http://localhost:8087/ords/"; 
+var schema="demo";
+var username="DEMO";
+var password="demo";
+var sqlText;
+var url;
+var example;
+var extension = ".sql";
+
+//override the form action
+window.addEventListener("load", function () {
+	  // We need to access the form element
+	  var form = document.getElementById("sqlForm");
+
+	  // to takeover its submit event.
+	  form.addEventListener("submit", function (event) {
+	     event.preventDefault();
+	     //post request (sendDate in rest_enabled_sql.jss)
+	     postDataParam(url,"application/x-www-form-urlencoded",username,password,sqlText,processResponse); 
+	  });
+	  
+	  //callback functionality
+	  function processResponse(data){
+		  updateResponsePanel(data);
+	  }
+	
+});
+
+function updateResponsePanel(data){
+	var panel = document.getElementById("json_result_div");
+	var status = data.status;
+	
+	if(data.hasOwnProperty('eventValue')){
+		if(status == 200) {
+			handleEventValue(data.eventValue, panel);
+		} else if(status==401){
+			handleInfoValue("Username or Password is incorrect", panel);
+		} else if (status==500){
+		    handleInfoValue("Internal Error <br/>Is the content-type set correctly? Currently set as "+contentType +"<br/>Is the json request valid?", panel); 
+		}
+	}
+	if(data.hasOwnProperty('infoValue')){
+		handleInfoValue(data.infoValue, panel);
+	}
+}
+	
+function handleInfoValue(info, panel){
+	panel.innerHTML= "<p>"+info+"</p>";
+}	
+</script>
+<script>
+//setup the server value
+server = window.location.protocol+"//"+window.location.hostname+":"+window.location.port+"/ords/";
+if(server.startsWith("file")){
+	server="http://localhost:8087/ords/";	
+}						
+document.getElementById("server").value =server;
+	
+//setup the examples dropdown box
+var selectList = document.getElementById("examples");
+for(var i = 0; i< examples.length; i++){
+	selectList.options.add( new Option(examples[i].name,examples[i].name,true,true));
+}
+selectList.options[0].selected = true;//choose the first item in the drop down as the default
+example = selectList.options[0].value;
+
+//this will refresh the sqlText and contentType
+setExample();
+
+//setup curl
+refresh();
+
+//define action when example choosen
+function setExample() {
+	var exampleElement = document.getElementById("examples");
+	example = exampleElement.options[exampleElement.selectedIndex].value;
+	for(var i = 0; i< examples.length; i++){
+		if(examples[i].name == example){
+			sqlText = examples[i].value;
+		}
+	}
+	document.getElementById("sql").value = sqlText;
+	refresh();
+}
+
+//define action when server changed
+function setServer() {
+	server = document.getElementById("server").value;   
+	refresh();
+}
+
+//define action when schema changed
+function setSchema() {
+	schema = document.getElementById("schema").value;
+	refresh();
+}
+
+//define action when username changed
+function setUsername() {
+	username = document.getElementById("username").value;
+	refresh();
+}
+
+//define action when password changed
+function setPassword() {
+	password = document.getElementById("password").value;
+	refresh();
+}
+
+//define action when password changed
+function setSQL() {
+	sqlText= document.getElementById("sql").value;
+	refresh();
+}
+
+function refresh(){
+	refreshURL();
+	refreshCurl();
+}
+
+function refreshURL(){
+	url = server+schema.toLowerCase()+"/_/sql/export";
+}
+
+function refreshCurl() {
+	//setup curl command
+    var curlCmd = "curl -i -X POST --user "+username+":"+password+" -H \"Content-Type: application/x-www-form-urlencoded\" --data-urlencode data@"+example+extension+" "+url;
+    document.getElementById("curl").innerHTML=curlCmd;
+}
+</script>
+</html>
